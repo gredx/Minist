@@ -39,7 +39,8 @@ def maybe_download(filename, work_directory):
     print('Successfully downloaded', filename, statinfo.st_size, 'bytes.')
   return filepath
 
-
+# 读取4个字节的内容,并转成numpy int32 类型 , 返回
+# numpy.frombuffer(buffer , dtype )  将buffer的内容 转为numpy.dtype 类型
 def _read32(bytestream):
   dt = numpy.dtype(numpy.uint32).newbyteorder('>')
   return numpy.frombuffer(bytestream.read(4), dtype=dt)[0]
@@ -48,19 +49,19 @@ def _read32(bytestream):
 def extract_images(filename):
   """Extract the images into a 4D uint8 numpy array [index, y, x, depth]."""
   print('Extracting', filename)
-  with gzip.open(filename) as bytestream:
-    magic = _read32(bytestream)
+  with gzip.open(filename) as bytestream:         #打开文件常用with 语法 , 自动关闭文件
+    magic = _read32(bytestream)     # magic是文件开头的标志位 , 标志文件是否按照预想的读取成功 , 进行异常处理
     if magic != 2051:
       raise ValueError(
           'Invalid magic number %d in MNIST image file: %s' %
           (magic, filename))
-    num_images = _read32(bytestream)
+    num_images = _read32(bytestream)              # 文件开头是 图片数目, 图片行数和列数
     rows = _read32(bytestream)
     cols = _read32(bytestream)
-    buf = bytestream.read(rows * cols * num_images)
-    data = numpy.frombuffer(buf, dtype=numpy.uint8)
-    data = data.reshape(num_images, rows, cols, 1)
-    return data
+    buf = bytestream.read(rows * cols * num_images)   # 读取出图片
+    data = numpy.frombuffer(buf, dtype=numpy.uint8)   # 转成numpy.uint格式
+    data = data.reshape(num_images, rows, cols, 1)    # reshape成4维向量
+    return data                                       # 读取成功 , 返回内容
 
 
 def dense_to_one_hot(labels_dense, num_classes=10):
@@ -212,4 +213,4 @@ def read_data_sets(train_dir, fake_data=False, one_hot=False, dtype=tf.float32):
   data_sets.test = DataSet(test_images, test_labels, dtype=dtype)
 
   return data_sets
-read_data_sets("D:\\test\mnist-master\Mnist_data")
+read_data_sets("E:\\test\mnist-master\Mnist_data")
